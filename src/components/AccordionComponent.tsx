@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { Button, Form, InputGroup } from 'react-bootstrap';
 import { ActionItemProps } from '../types';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlus, faTrash, faPenToSquare, faFloppyDisk } from '@fortawesome/free-solid-svg-icons'
 
- const ActionItem =({ item, level, onAddChild, onDelete, onEdit }: ActionItemProps) =>{
+
+
+const AccordionComponent = ({ item, level, onAddChild, onDelete, onEdit }: ActionItemProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(item.title);
@@ -24,10 +28,10 @@ import { ActionItemProps } from '../types';
           >
             {isExpanded ? (">"
             ) : (
-            ">")}
+              ">")}
           </Button>
         )}
-        
+
         {isEditing ? (
           <Form onSubmit={handleSubmit} className="d-flex align-items-center gap-2">
             <InputGroup size="sm">
@@ -38,7 +42,7 @@ import { ActionItemProps } from '../types';
                 autoFocus
               />
               <Button variant="success" type="submit">
-                Save
+                <FontAwesomeIcon icon={faFloppyDisk} />
               </Button>
             </InputGroup>
           </Form>
@@ -51,31 +55,32 @@ import { ActionItemProps } from '../types';
                 className="p-1 text-success"
                 onClick={() => setIsEditing(true)}
               >
-               editar
+                <FontAwesomeIcon icon={faPenToSquare} />
               </Button>
               <Button
                 variant="link"
                 className="p-1 text-primary"
                 onClick={() => onAddChild(item.id)}
               >
-                agregar
+                <FontAwesomeIcon icon={faPlus} />
+
               </Button>
               <Button
                 variant="link"
                 className="p-1 text-danger"
                 onClick={() => onDelete(item.id)}
               >
-               borrar
+                <FontAwesomeIcon icon={faTrash} />
               </Button>
             </div>
           </div>
         )}
       </div>
-      
+
       {isExpanded && item.children && (
         <div className="ms-4 border-start border-2">
           {item.children.map((child) => (
-            <ActionItem
+            <AccordionComponent
               key={child.id}
               item={child}
               level={level + 1}
@@ -90,4 +95,4 @@ import { ActionItemProps } from '../types';
   );
 }
 
-export default ActionItem
+export default AccordionComponent

@@ -1,0 +1,52 @@
+.action-group:hover .action-buttons {
+  opacity: 1 !important;
+}
+
+.action-buttons {
+  transition: opacity 0.2s ease-in-out;
+}
+.min-h-screen {
+  min-height: 100vh;
+}
+
+h1{
+    color:#95a880;
+}
+
+/* NavbarComponent */
+.custom-navbar {
+  background-color: rgb(158 181 170) !important;
+}
+
+
+/* Estilo base del contenedor */
+.layout {
+    max-height: 70vh;
+    min-width: 100vh;
+    overflow-y: auto;
+    padding-right: 8px; 
+}
+
+.layout::-webkit-scrollbar {
+    width: 8px;
+}
+
+.layout::-webkit-scrollbar-track {
+    background: #e1e1e1;
+    border-radius: 4px;
+}
+
+.layout::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.layout::-webkit-scrollbar-track:hover,
+.layout::-webkit-scrollbar-track:active {
+    background: #d4d4d4;
+}
+
+.layout::-webkit-scrollbar-thumb:hover,
+.layout::-webkit-scrollbar-thumb:active {
+    background: #555;
+}

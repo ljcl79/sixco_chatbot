@@ -1,7 +1,0 @@
-.action-group:hover .action-buttons {
-  opacity: 1 !important;
-}
-
-.action-buttons {
-  transition: opacity 0.2s ease-in-out;
-}
