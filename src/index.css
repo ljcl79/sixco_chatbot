@@ -9,13 +9,13 @@
   min-height: 100vh;
 }
 
-h1{
-    color:#95a880;
+h1,h3{
+    color:#858481 !important;
 }
 
 /* NavbarComponent */
 .custom-navbar {
-  background-color: rgb(158 181 170) !important;
+  background-color: rgb(77, 76, 76) !important;
 }
 
 
@@ -49,4 +49,8 @@ h1{
 .layout::-webkit-scrollbar-thumb:hover,
 .layout::-webkit-scrollbar-thumb:active {
     background: #555;
+}
+
+.click-style{
+  cursor: pointer;
 }
