@@ -1,11 +1,13 @@
 import { useFlows } from '../context/FlowsContext';
 import { FontAwesomeIcon, } from '@fortawesome/react-fontawesome'
 import NewFlowModal from '../components/NewFlowModal';
-
+import { useNavigate } from "react-router-dom";
 import { faArrowUpRightFromSquare, faTrash, faPenToSquare, faPlus } from '@fortawesome/free-solid-svg-icons'
 
 const FlowsViews = () => {
     const { flows, isLoading, error } = useFlows();
+    const navigate = useNavigate();
+
 
     if (isLoading) return <div className="text-center d-flex justify-content-center align-items-center" ><h1>Cargando...</h1></div>;
     if (error) return <div>Error: {error.message}</div>;
@@ -14,13 +16,13 @@ const FlowsViews = () => {
         <div className="container">
             <h1 className="text-center mt-4 mb-5">FLUJOS DE TRABAJO</h1>
             <div className="d-flex justify-content-end mb-4 container ">
-                <NewFlowModal/>
+                <NewFlowModal />
             </div>
             <div className="row layout">
                 {flows.map(flow => (
                     <div className="col-md-4 mb-5" key={flow.id_flujo}>
-                        <div className="card p-5 shadow p-3 mb-2 bg-body-tertiary rounded" style={{minHeight:'20rem'}} >
-                            <div className="d-flex justify-content-end "><FontAwesomeIcon className="text-primary click-style" icon={faArrowUpRightFromSquare} /></div>
+                        <div className="card p-5 shadow p-3 mb-2 bg-body-tertiary rounded" style={{ minHeight: '20rem' }} >
+                            <div className="d-flex justify-content-end "><FontAwesomeIcon className="text-primary click-style" onClick={() => navigate(`/flujo/${flow.id_flujo}`)} icon={faArrowUpRightFromSquare} /></div>
                             <div className="card-body">
                                 <h4 className="card-title text-center mb-5">{flow.nombre.toUpperCase()}</h4>
                                 <div className="d-flex justify-content-between aling-items-center">
