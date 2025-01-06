@@ -3,7 +3,7 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import { useFlows } from '../context/FlowsContext';
+import { useFlows } from '../../context/FlowsContext';
 import Swal from "sweetalert2";
 
 

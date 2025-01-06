@@ -1,6 +1,6 @@
 import { useFlows } from '../context/FlowsContext';
 import { FontAwesomeIcon, } from '@fortawesome/react-fontawesome'
-import NewFlowModal from '../components/NewFlowModal';
+import NewFlowModal from '../components/flows/NewFlowModal';
 import { useNavigate } from "react-router-dom";
 import { faArrowUpRightFromSquare, faTrash, faPenToSquare, faPlus } from '@fortawesome/free-solid-svg-icons'
 
