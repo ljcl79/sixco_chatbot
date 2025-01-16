@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { Container, Card, Button } from 'react-bootstrap';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faSave, faDiagramProject } from '@fortawesome/free-solid-svg-icons';
 import { Step } from '../types';
 import NewStepModal from '../components/steps/NewStepModal';
 import { StepBuilder } from '../components/steps/StepBuilder';
+import JsonTreeView from '../components/JsonTree';
 
 const FlowView = () => {
   const [steps, setSteps] = useState<Step[]>([]);
@@ -11,7 +14,7 @@ const FlowView = () => {
   const [currentStep, setCurrentStep] = useState<Step>({
     mensaje: '',
     tipo: 'mensaje',
-    tipo_entrada:'texto'
+    tipo_entrada: 'texto'
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -40,7 +43,7 @@ const FlowView = () => {
 
   const addStep = () => {
     setSteps([...steps, currentStep]);
-    setCurrentStep({ mensaje: '', tipo: 'mensaje' });
+    setCurrentStep({ mensaje: '', tipo: 'mensaje', tipo_entrada: 'texto' });
     setShowModal(false);
   };
 
@@ -54,34 +57,17 @@ const FlowView = () => {
     setSteps(steps.filter((_, idx) => idx !== index));
   };
 
-  const exportJSON = () => {
-    const jsonStr = JSON.stringify(steps, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'workflow.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
-    <Container className="py-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Pasos del Flujo</h2>
+    <Container fluid className="p-4">
+      <div className="d-flex justify-content-end align-items-center mb-4">
         <div className="d-flex gap-2">
           <Button
             variant="success"
             onClick={() => setShowModal(true)}
             className="d-flex align-items-center shadow"
           >
+            <FontAwesomeIcon icon={faPlus} className="me-2" />
             Agregar Paso
-          </Button>
-          <Button
-            variant="success"
-            onClick={exportJSON}
-          >
-            Exportar JSON
           </Button>
           <Button
             variant="primary"
@@ -95,11 +81,102 @@ const FlowView = () => {
                 Guardando...
               </>
             ) : (
-              'Guardar Todos los Pasos'
+              <>
+                <FontAwesomeIcon icon={faSave} className="me-2" />
+                Guardar Todos los Pasos
+              </>
             )}
           </Button>
         </div>
       </div>
+
+      {steps.length === 0 ? (
+        <div className="text-center py-5">
+          <Card className="border-0 shadow-sm">
+            <Card.Body className="py-5">
+              <div className="mb-4">
+                <FontAwesomeIcon
+                  icon={faDiagramProject}
+                  style={{
+                    fontSize: '5rem',
+                    color: '#6c757d',
+                    opacity: '0.5'
+                  }}
+                />
+              </div>
+              <h3 className="text-secondary mb-3">No hay pasos configurados</h3>
+              <p className="text-muted mb-4">
+                Comience agregando un nuevo paso para crear su flujo de trabajo
+              </p>
+              <Button
+                variant="success"
+                size="lg"
+                onClick={() => setShowModal(true)}
+                className="d-flex align-items-center mx-auto"
+                style={{ width: 'fit-content' }}
+              >
+                <FontAwesomeIcon icon={faPlus} className="me-2" />
+                Agregar Primer Paso
+              </Button>
+            </Card.Body>
+          </Card>
+        </div>
+      ) : (
+        <div className="row">
+          <div className="col-md-3">
+            <JsonTreeView data={steps} />
+          </div>
+          <div className="col-md-9">
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="steps">
+                {(provided) => (
+                  <div
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                  >
+                    {steps.map((step, index) => (
+                      <Draggable
+                        key={index.toString()}
+                        draggableId={index.toString()}
+                        index={index}
+                      >
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                          >
+                            <Card className="mb-3 shadow-sm">
+                              <Card.Body>
+                                <div className="d-flex align-items-start">
+                                  <div
+                                    {...provided.dragHandleProps}
+                                    className="me-3 cursor-grab"
+                                    style={{ cursor: 'grab' }}
+                                  >
+                                    ⋮⋮
+                                  </div>
+                                  <div className="flex-grow-1">
+                                    <StepBuilder
+                                      step={step}
+                                      onStepChange={(newStep) => updateStep(index, newStep)}
+                                      onDelete={() => deleteStep(index)}
+                                    />
+                                  </div>
+                                </div>
+                              </Card.Body>
+                            </Card>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+          </div>
+        </div>
+      )}
 
       <NewStepModal
         show={showModal}
@@ -110,63 +187,6 @@ const FlowView = () => {
         addStep={addStep}
         newOpcion={true}
       />
-
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="steps">
-          {(provided) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-            >
-              {steps.map((step, index) => (
-                <Draggable 
-                  key={index.toString()} 
-                  draggableId={index.toString()} 
-                  index={index}
-                >
-                  {(provided) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                    >
-                      <Card className="mb-3">
-                        <Card.Body>
-                          <div className="d-flex align-items-start">
-                            <div
-                              {...provided.dragHandleProps}
-                              className="me-3 cursor-grab"
-                              style={{ cursor: 'grab' }}
-                            >
-                              ⋮⋮
-                            </div>
-                            <div className="flex-grow-1">
-                              <StepBuilder
-                                step={step}
-                                onStepChange={(newStep) => updateStep(index, newStep)}
-                                onDelete={() => deleteStep(index)}
-                              />
-                            </div>
-                          </div>
-                        </Card.Body>
-                      </Card>
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
-
-      <Card>
-        <Card.Body>
-          <Card.Title>Vista Previa JSON</Card.Title>
-          <pre className="bg-light p-3 rounded" style={{ maxHeight: '400px', overflow: 'auto' }}>
-            {JSON.stringify(steps, null, 2)}
-          </pre>
-        </Card.Body>
-      </Card>
     </Container>
   );
 }

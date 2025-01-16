@@ -35,6 +35,12 @@ export type StepType =
   | 'entrada_texto'
   | 'entrada_imagen';
 
+export type StepTypesData =
+  'texto' |
+  'numero' |
+  'imagen' |
+  'telefono';
+
 
 // types.ts
 export interface Step {
