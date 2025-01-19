@@ -1,18 +1,32 @@
 import React, { createContext, useEffect, useState, ReactNode, useContext } from "react";
 import axiosInstance from '../axiosConfig';
 
-interface Flow {
+export interface Flow {
+    id: number;  // Cambiamos esto, eliminamos el id como función
     id_flujo?: number;
     nombre: string;
     activo: boolean;
 }
 
-interface FlowsContextType {
+// Agregamos interfaces para crear y actualizar
+export interface CreateFlowData {
+    nombre: string;
+    activo: boolean;
+}
+
+export interface UpdateFlowData {
+    nombre: string;
+    activo: boolean;
+}
+
+export interface FlowsContextType {
     flows: Flow[];
     setFlow: React.Dispatch<React.SetStateAction<Flow[]>>;
     isLoading: boolean;
     error: Error | null;
-    createFlow: (newFlow: Flow) => Promise<void>;
+    createFlow: (newFlow: CreateFlowData) => Promise<void>;  // Cambiamos el tipo aquí
+    updateFlow: (id: number, newFlow: UpdateFlowData) => Promise<void>;  // Y aquí
+    deleteFlow: (id: number) => Promise<void>;
 }
 
 const FlowsContext = createContext<FlowsContextType>({
@@ -20,7 +34,13 @@ const FlowsContext = createContext<FlowsContextType>({
     setFlow: () => { },
     isLoading: false,
     error: null,
-    createFlow: async () => { }
+    createFlow: async () => { },
+    updateFlow: async () => {
+
+    },
+    deleteFlow: async () => {
+
+    }
 });
 
 export const useFlows = () => {
@@ -40,32 +60,55 @@ export const FlowsProvider = ({ children }: FlowsProviderProps) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
-    const getData = async () => {
+    const getData = async (showLoading = true) => {
         try {
-            setIsLoading(true);
+            if (showLoading) setIsLoading(true);
 
-            const response = await axiosInstance.get('api/flows');
+            const response = await axiosInstance.get('/api/flujos');
             console.log(response)
 
             if (!response.status) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            setFlow(response.data);
+            setFlow(response.data.flujos);
             setError(null);
         } catch (err) {
             setError(err instanceof Error ? err : new Error('Error desconocido al obtener los flujos'));
         } finally {
-            setIsLoading(false);
+            if (showLoading) setIsLoading(false);
         }
     };
-    const createFlow = async (newFlow: Flow) => {
+    const createFlow = async (newFlow: CreateFlowData) => {
         try {
-            const response = await axiosInstance.post('api/flows', newFlow);
+            const response = await axiosInstance.post('/api/flujos', newFlow);
+            if (!response.status) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            await getData(false);
+        } catch (err) {
+            throw new Error(`Ocurrió un error al crear el flujo`);
+        }
+    };
+    const updateFlow = async (id: number, newFlow: UpdateFlowData) => {
+        try {
+            console.log(id,newFlow)
+            const response = await axiosInstance.put(`/api/flujos/${id}`, newFlow);
+            if (!response.status) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            await getData(false);
+        } catch (err) {
+            throw new Error(`Ocurrió un error al actualizar el flujo`);
+        }
+    };
+    const deleteFlow = async (id: number) => {
+        try {
+            const response = await axiosInstance.delete(`/api/flujos/${id}`);
             if (!response.status) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            await getData();
+            await getData(false);
 
         } catch (err) {
             throw new Error(`Ocurrio un error al crear el flujo`);
@@ -81,7 +124,9 @@ export const FlowsProvider = ({ children }: FlowsProviderProps) => {
         setFlow,
         isLoading,
         error,
-        createFlow
+        createFlow,
+        updateFlow,
+        deleteFlow
     };
 
     return (

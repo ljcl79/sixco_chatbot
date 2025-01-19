@@ -21,6 +21,16 @@ export const StepBuilder: React.FC<StepBuilderProps> = ({
   depth = 0,
   newOpcion
 }) => {
+
+  // Validación para mostrar el boton desplegble.
+  const shouldShowExpandButton =
+    depth > 0 &&
+    (
+      step.tipo === 'seleccion_lista' ||
+      step.tipo === 'seleccion_botones'
+    );
+
+  console.log('Should show button:', shouldShowExpandButton);
   const [isExpanded, setIsExpanded] = useState(true);
   const [expandedOptions, setExpandedOptions] = useState<{ [key: number]: boolean }>({});
 
@@ -212,21 +222,24 @@ export const StepBuilder: React.FC<StepBuilderProps> = ({
   return (
     <div className={`border-start ps-3 mb-3 ${depth > 0 ? 'ms-3' : ''}`}>
       <div className="mb-3">
-        <div className="">
-          {depth > 0 && (
-            <Button
-              variant="link"
-              className="p-0 me-2"
-              onClick={() => setIsExpanded(!isExpanded)}
-              style={{ color: 'inherit' }}
-            >
-              <FontAwesomeIcon icon={isExpanded ? faChevronDown : faChevronRight} />
-            </Button>
-          )}
-          <div className="row">
+        <div className="d-flex w-100">
+          {/* Boton para expandir secciones internas */}
+          <div>
+            {shouldShowExpandButton && (
+              <Button
+                variant="link"
+                className="p-0 me-2"
+                onClick={() => setIsExpanded(!isExpanded)}
+                style={{ color: 'inherit' }}
+              >
+                <FontAwesomeIcon icon={isExpanded ? faChevronDown : faChevronRight} />
+              </Button>
+            )}
+          </div>
+          <div className="row w-100">
             <div className="col-md-11">
               <Form.Select
-                value={step.tipo}
+                value={step.tipo ?? ''}
                 onChange={(e) => onStepChange({ ...step, tipo: e.target.value as StepType })}
               >
                 {stepTypes.map(type => (
@@ -238,7 +251,7 @@ export const StepBuilder: React.FC<StepBuilderProps> = ({
 
               <Form.Select
                 className="mt-2"
-                value={step.tipo_entrada}
+                value={step.tipo_entrada ?? ''}
                 onChange={(e) => onStepChange({ ...step, tipo_entrada: e.target.value as StepType })}
               >
                 {stepTypesData.map(type => (

@@ -1,5 +1,6 @@
 import { useFlows } from '../context/FlowsContext';
-import NewFlowModal from '../components/flows/NewFlowModal';
+import { useState } from 'react';
+import FlowModal from '../components/flows/FlowModal';
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -10,6 +11,8 @@ import {
     faExclamationTriangle
 } from '@fortawesome/free-solid-svg-icons';
 import { Card } from 'react-bootstrap';
+import Swal from "sweetalert2";
+
 
 const LoadingState = () => (
     <div className="text-center d-flex flex-column justify-content-center align-items-center"
@@ -54,8 +57,42 @@ const ErrorState = ({ error }: { error: Error }) => (
 );
 
 const FlowsViews = () => {
-    const { flows, isLoading, error } = useFlows();
+    const { flows, isLoading, error, deleteFlow } = useFlows();
     const navigate = useNavigate();
+    const [selectedFlow, setSelectedFlow] = useState(null);
+
+
+    const handleDelete = async (id: number) => {
+        try {
+            // Primero mostramos el diálogo de confirmación
+            const result = await Swal.fire({
+                title: "¿Estás seguro?",
+                text: "No podrás revertir esta acción",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Sí, eliminar",
+                cancelButtonText: "Cancelar"
+            });
+
+            // Solo procedemos si el usuario confirmó
+            if (result.isConfirmed) {
+                await deleteFlow(id);
+                Swal.fire({
+                    icon: "success",
+                    title: "¡Eliminado!",
+                    text: "El flujo se eliminó exitosamente.",
+                });
+            }
+        } catch (err) {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: err instanceof Error ? err.message : "Ocurrió un error inesperado.",
+            });
+        }
+    };
 
     if (isLoading) return <LoadingState />;
     if (error) return <ErrorState error={error} />;
@@ -64,17 +101,17 @@ const FlowsViews = () => {
         <div className="container">
             <h1 className="text-center mt-4 mb-5">FLUJOS DE TRABAJO</h1>
             <div className="d-flex justify-content-end mb-4 container">
-                <NewFlowModal />
+                <FlowModal mode="create" />
             </div>
             <div className="row layout">
                 {flows.map(flow => (
-                    <div className="col-md-4 mb-5" key={flow.id_flujo}>
+                    <div className="col-md-4 mb-5" key={flow.id}>
                         <div className="card p-5 shadow p-3 mb-2 bg-body-tertiary rounded"
                             style={{ minHeight: '20rem' }}>
                             <div className="d-flex justify-content-end">
                                 <FontAwesomeIcon
                                     className="text-primary click-style"
-                                    onClick={() => navigate(`/flujo/${flow.id_flujo}`)}
+                                    onClick={() => navigate(`/flujo/${flow.id}`)}
                                     icon={faArrowUpRightFromSquare}
                                 />
                             </div>
@@ -84,11 +121,13 @@ const FlowsViews = () => {
                                 </h4>
                                 <div className="d-flex justify-content-between align-items-center">
                                     <div className="mt-4">
-                                        <span className="click-style me-4 mt-5">
+                                        <span className="click-style me-4 mt-5" onClick={() => {
+                                            setSelectedFlow(flow);
+                                        }}>
                                             <FontAwesomeIcon className="text-warning" icon={faPenToSquare} />
                                             Editar
                                         </span>
-                                        <span className="click-style me-3 mt-5">
+                                        <span className="click-style me-3 mt-5" onClick={() => handleDelete(flow.id)}>
                                             <FontAwesomeIcon className="text-danger" icon={faTrash} />
                                             Eliminar
                                         </span>

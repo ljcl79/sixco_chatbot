@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Card, Button } from 'react-bootstrap';
+import { useParams } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faSave, faDiagramProject } from '@fortawesome/free-solid-svg-icons';
@@ -7,14 +8,17 @@ import { Step } from '../types';
 import NewStepModal from '../components/steps/NewStepModal';
 import { StepBuilder } from '../components/steps/StepBuilder';
 import JsonTreeView from '../components/JsonTree';
+import axiosInstance from '../axiosConfig';
+import Swal from "sweetalert2";
 
 const FlowView = () => {
+  const { id } = useParams();
   const [steps, setSteps] = useState<Step[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>({
     mensaje: '',
     tipo: 'mensaje',
-    tipo_entrada: 'texto'
+    // tipo_entrada: 'texto'
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -30,12 +34,20 @@ const FlowView = () => {
 
   const handleSaveAllSteps = async () => {
     setIsSaving(true);
+    console.log(steps)
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Enviando pasos a la API:', JSON.stringify(steps, null, 2));
-      console.log('Pasos guardados exitosamente');
-    } catch (error) {
-      console.error('Error al guardar los pasos:', error);
+      await axiosInstance.post(`/api/detalle_flujos/${id}`, steps);
+      Swal.fire({
+        icon: "success",
+        title: "Pasos Agregados",
+        text: "Pasos guardados exitosamente.",
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err instanceof Error ? err.message : "Ocurrió un error inesperado.",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -56,6 +68,19 @@ const FlowView = () => {
   const deleteStep = (index: number) => {
     setSteps(steps.filter((_, idx) => idx !== index));
   };
+
+  const fetchStep = async () => {
+    try {
+      const response = await axiosInstance.get(`/api/detalle_flujos/${id}`);
+      setSteps(response.data);
+    } catch (error) {
+      console.error('Error al obtener los detalles del flujo:', error);
+    }
+  };
+  useEffect(() => {
+    fetchStep();
+  }, [id]);
+
 
   return (
     <Container fluid className="p-4">
