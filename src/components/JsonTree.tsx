@@ -1,4 +1,9 @@
-import React, { useState } from 'react';
+/**
+* Componente de visualización en árbol para la estructura de flujos de trabajo
+* Permite visualizar jerárquicamente los pasos y opciones de un flujo
+*/
+
+import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faChevronDown,
@@ -8,37 +13,61 @@ import {
     faImage,
     faList,
     faArrowDown19,
-    faArrowRight
 } from '@fortawesome/free-solid-svg-icons';
 
-const TreeNode = ({ data, level = 0 }) => {
-    const [isOpen, setIsOpen] = useState(true);
+/**
+* Props para el nodo del árbol
+* @interface TreeNodeProps
+*/
+interface TreeNodeProps {
+    /** Datos del nodo a renderizar */
+    data: any;
+    /** Nivel de profundidad en el árbol */
+    level?: number;
+}
 
-    const hasChildren = (node) => {
+/**
+* Componente que renderiza un nodo individual del árbol
+* @component TreeNode
+* @description Maneja la visualización recursiva de nodos y sus hijos
+*/
+const TreeNode = ({ data, level = 0 }: TreeNodeProps) => {
+    // Control del estado de expansión del nodo
+    const [isOpen, setIsOpen] = useState(false);
+
+    /**
+     * Verifica si un nodo tiene hijos
+     * @param node - Nodo a verificar
+     * @returns {boolean} True si el nodo tiene hijos
+     */
+    const hasChildren = (node: any) => {
         return (node.proximo_paso && node.proximo_paso.length > 0) ||
             (node.opciones && node.opciones.length > 0);
     };
 
-    const getNodeIcon = (type) => {
+    /**
+     * Obtiene el ícono correspondiente al tipo de nodo
+     * @param type - Tipo de nodo
+     * @returns Ícono de FontAwesome correspondiente
+     */
+    const getNodeIcon = (type: string) => {
         switch (type) {
-            case 'mensaje':
-                return faComments;
-            case 'entrada_texto':
-                return faComments;
-            case 'entrada_imagen':
-                return faImage;
-            case 'seleccion_lista':
-                return faList;
-            case 'seleccion_botones':
-                return faList;
-            case 'entrada_numero':
-                return faArrowDown19;
-            default:
-                return faCircle;
+            case 'mensaje': return faComments;
+            case 'entrada_texto': return faComments;
+            case 'entrada_imagen': return faImage;
+            case 'seleccion_lista': return faList;
+            case 'seleccion_botones': return faList;
+            case 'entrada_numero': return faArrowDown19;
+            default: return faCircle;
         }
     };
 
-    const renderNodeContent = (node) => {
+    /**
+     * Genera el texto a mostrar para un nodo
+     * @param node - Nodo a procesar
+     * @returns {string} Texto formateado del nodo
+     */
+    const renderNodeContent = (node: any) => {
         let displayText = node.mensaje || '';
         if (node.valor) {
             displayText = `${displayText} (Opción ${node.valor})`;
@@ -127,7 +156,21 @@ const TreeNode = ({ data, level = 0 }) => {
     return renderNode(data, 'root');
 };
 
-const JsonTreeView = ({ data }) => {
+/**
+* Props para el componente principal
+* @interface JsonTreeViewProps
+*/
+interface JsonTreeViewProps {
+    /** Datos a mostrar en el árbol */
+    data: any[];
+}
+
+/**
+* Componente principal que muestra la estructura de árbol
+* @component JsonTreeView
+* @description Renderiza una vista jerárquica de los pasos del flujo
+*/
+const JsonTreeView = ({ data }: JsonTreeViewProps) => {
     return (
         <div className="shadow p-3 mb-5 bg-body-tertiary rounded p-5">
             <div className="p-6">

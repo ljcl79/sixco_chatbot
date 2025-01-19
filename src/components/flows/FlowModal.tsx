@@ -4,20 +4,10 @@ import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faPencil } from '@fortawesome/free-solid-svg-icons';
-import { useFlows, Flow, CreateFlowData, UpdateFlowData } from '../../context/FlowsContext';
+import { useFlows, CreateFlowData, UpdateFlowData } from '../../context/FlowsContext';
+import { FlowModalProps } from '../../types/index';
 import Swal from "sweetalert2";
 
-interface Flow {
-    id?: number;
-    nombre: string;
-    activo: boolean;
-}
-
-interface FlowModalProps {
-    mode: 'create' | 'edit';
-    initialData?: Flow;
-    onClose?: () => void;
-}
 
 const FlowModal = ({ mode, initialData, onClose }: FlowModalProps) => {
     const [show, setShow] = useState(false);

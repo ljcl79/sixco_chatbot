@@ -30,7 +30,6 @@ export const StepBuilder: React.FC<StepBuilderProps> = ({
       step.tipo === 'seleccion_botones'
     );
 
-  console.log('Should show button:', shouldShowExpandButton);
   const [isExpanded, setIsExpanded] = useState(true);
   const [expandedOptions, setExpandedOptions] = useState<{ [key: number]: boolean }>({});
 
@@ -276,7 +275,7 @@ export const StepBuilder: React.FC<StepBuilderProps> = ({
                   onClick={onDelete}
                   size="sm"
                 >
-                  ×
+                  <FontAwesomeIcon icon={faTrash} />
                 </Button>
               )}
             </div>

@@ -1,139 +1,145 @@
-import React, { createContext, useEffect, useState, ReactNode, useContext } from "react";
+/**
+* Contexto para la gestión de flujos de trabajo
+* Proporciona funcionalidades CRUD y estado global para los flujos
+*/
+
+import { createContext, useEffect, useState, ReactNode, useContext } from "react";
 import axiosInstance from '../axiosConfig';
+import { FlowsContextType, CreateFlowData, UpdateFlowData, Flow } from "../types/index";
 
-export interface Flow {
-    id: number;  // Cambiamos esto, eliminamos el id como función
-    id_flujo?: number;
-    nombre: string;
-    activo: boolean;
-}
-
-// Agregamos interfaces para crear y actualizar
-export interface CreateFlowData {
-    nombre: string;
-    activo: boolean;
-}
-
-export interface UpdateFlowData {
-    nombre: string;
-    activo: boolean;
-}
-
-export interface FlowsContextType {
-    flows: Flow[];
-    setFlow: React.Dispatch<React.SetStateAction<Flow[]>>;
-    isLoading: boolean;
-    error: Error | null;
-    createFlow: (newFlow: CreateFlowData) => Promise<void>;  // Cambiamos el tipo aquí
-    updateFlow: (id: number, newFlow: UpdateFlowData) => Promise<void>;  // Y aquí
-    deleteFlow: (id: number) => Promise<void>;
-}
-
+/**
+* Contexto inicial para flujos con valores por defecto
+*/
 const FlowsContext = createContext<FlowsContextType>({
-    flows: [],
-    setFlow: () => { },
-    isLoading: false,
-    error: null,
-    createFlow: async () => { },
-    updateFlow: async () => {
-
-    },
-    deleteFlow: async () => {
-
-    }
+   flows: [],
+   setFlow: () => { },
+   isLoading: false,
+   error: null,
+   createFlow: async () => { },
+   updateFlow: async () => { },
+   deleteFlow: async () => { }
 });
 
+/**
+* Hook personalizado para acceder al contexto de flujos
+* @throws Error si se usa fuera del FlowsProvider
+* @returns Contexto con funcionalidades para gestionar flujos
+*/
 export const useFlows = () => {
-    const context = useContext(FlowsContext);
-    if (!context) {
-        throw new Error('useFlow debe ser usado dentro de un FlowsProvider');
-    }
-    return context;
+   const context = useContext(FlowsContext);
+   if (!context) {
+       throw new Error('useFlow debe ser usado dentro de un FlowsProvider');
+   }
+   return context;
 };
 
+/**
+* Props para el proveedor de contexto
+*/
 type FlowsProviderProps = {
-    children: ReactNode;
+   children: ReactNode;
 };
 
+/**
+* Proveedor de contexto para la gestión de flujos
+* @param {FlowsProviderProps} props - Props del componente
+*/
 export const FlowsProvider = ({ children }: FlowsProviderProps) => {
-    const [flows, setFlow] = useState<Flow[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<Error | null>(null);
+   // Estado para almacenar los flujos y su estado
+   const [flows, setFlow] = useState<Flow[]>([]);
+   const [isLoading, setIsLoading] = useState(true);
+   const [error, setError] = useState<Error | null>(null);
 
-    const getData = async (showLoading = true) => {
-        try {
-            if (showLoading) setIsLoading(true);
+   /**
+    * Obtiene los flujos desde el servidor
+    * @param {boolean} showLoading - Indica si se debe mostrar el estado de carga
+    */
+   const getData = async (showLoading = true) => {
+       try {
+           if (showLoading) setIsLoading(true);
+           const response = await axiosInstance.get('/api/flujos');
+           if (!response.status) {
+               throw new Error(`HTTP error! status: ${response.status}`);
+           }
+           setFlow(response.data.flujos);
+           setError(null);
+       } catch (err) {
+           setError(err instanceof Error ? err : new Error('Error desconocido al obtener los flujos'));
+       } finally {
+           if (showLoading) setIsLoading(false);
+       }
+   };
 
-            const response = await axiosInstance.get('/api/flujos');
-            console.log(response)
+   /**
+    * Crea un nuevo flujo
+    * @param {CreateFlowData} newFlow - Datos del nuevo flujo
+    */
+   const createFlow = async (newFlow: CreateFlowData) => {
+       try {
+           const response = await axiosInstance.post('/api/flujos', newFlow);
+           if (!response.status) {
+               throw new Error(`HTTP error! status: ${response.status}`);
+           }
+           await getData(false);
+       } catch (err) {
+           throw new Error(`Ocurrió un error al crear el flujo`);
+       }
+   };
 
-            if (!response.status) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            setFlow(response.data.flujos);
-            setError(null);
-        } catch (err) {
-            setError(err instanceof Error ? err : new Error('Error desconocido al obtener los flujos'));
-        } finally {
-            if (showLoading) setIsLoading(false);
-        }
-    };
-    const createFlow = async (newFlow: CreateFlowData) => {
-        try {
-            const response = await axiosInstance.post('/api/flujos', newFlow);
-            if (!response.status) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            await getData(false);
-        } catch (err) {
-            throw new Error(`Ocurrió un error al crear el flujo`);
-        }
-    };
-    const updateFlow = async (id: number, newFlow: UpdateFlowData) => {
-        try {
-            console.log(id,newFlow)
-            const response = await axiosInstance.put(`/api/flujos/${id}`, newFlow);
-            if (!response.status) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            await getData(false);
-        } catch (err) {
-            throw new Error(`Ocurrió un error al actualizar el flujo`);
-        }
-    };
-    const deleteFlow = async (id: number) => {
-        try {
-            const response = await axiosInstance.delete(`/api/flujos/${id}`);
-            if (!response.status) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+   /**
+    * Actualiza un flujo existente
+    * @param {number} id - ID del flujo a actualizar
+    * @param {UpdateFlowData} newFlow - Nuevos datos del flujo
+    */
+   const updateFlow = async (id: number, newFlow: UpdateFlowData) => {
+       try {
+           const response = await axiosInstance.put(`/api/flujos/${id}`, newFlow);
+           if (!response.status) {
+               throw new Error(`HTTP error! status: ${response.status}`);
+           }
+           await getData(false);
+       } catch (err) {
+           throw new Error(`Ocurrió un error al actualizar el flujo`);
+       }
+   };
 
-            await getData(false);
+   /**
+    * Elimina un flujo
+    * @param {number} id - ID del flujo a eliminar
+    */
+   const deleteFlow = async (id: number) => {
+       try {
+           const response = await axiosInstance.delete(`/api/flujos/${id}`);
+           if (!response.status) {
+               throw new Error(`HTTP error! status: ${response.status}`);
+           }
+           await getData(false);
+       } catch (err) {
+           throw new Error(`Ocurrio un error al crear el flujo`);
+       }
+   };
 
-        } catch (err) {
-            throw new Error(`Ocurrio un error al crear el flujo`);
-        }
-    };
+   // Cargar flujos al montar el componente
+   useEffect(() => {
+       getData();
+   }, []);
 
-    useEffect(() => {
-        getData();
-    }, []);
+   // Objeto de valor para el contexto
+   const value = {
+       flows,
+       setFlow,
+       isLoading,
+       error,
+       createFlow,
+       updateFlow,
+       deleteFlow
+   };
 
-    const value = {
-        flows,
-        setFlow,
-        isLoading,
-        error,
-        createFlow,
-        updateFlow,
-        deleteFlow
-    };
-
-    return (
-        <FlowsContext.Provider value={value}>
-            {children}
-        </FlowsContext.Provider>
-    );
+   return (
+       <FlowsContext.Provider value={value}>
+           {children}
+       </FlowsContext.Provider>
+   );
 };
 
 export default FlowsProvider;
