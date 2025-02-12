@@ -6,6 +6,41 @@ import { faChevronDown, faChevronRight, faGripVertical, faTrash } from '@fortawe
 import { Step, StepType, StepTypesData, Option } from '../../types/index';
 import Swal from 'sweetalert2';
 
+
+/**
+ * Paleta de colores para niveles jerárquicos del flujo.
+ * Comienza con blanco y progresa a tonos más oscuros de azul.
+ */
+const levelColors = [
+  'rgba(255, 255, 255, 1)',
+  'rgba(240, 248, 255, 0.9)',
+  'rgba(230, 240, 250, 0.9)',
+  'rgba(220, 235, 245, 0.9)',
+  'rgba(210, 230, 240, 0.9)',
+  'rgba(200, 225, 235, 0.9)',
+  'rgba(195, 220, 225, 0.9)'
+];
+
+/**
+ * Obtiene el color de fondo según el nivel de profundidad.
+ * Para niveles más allá de la paleta, reduce gradualmente la opacidad.
+ * 
+ * @param depth - Nivel de profundidad
+ * @returns Color en formato rgba
+ */
+const getBackgroundColor = (depth: number): string => {
+  if (depth < levelColors.length) {
+    return levelColors[depth];
+  }
+
+  const baseOpacity = 0.9;
+  const opacityStep = 0.5;
+  const extraDepth = depth - levelColors.length + 1;
+  const newOpacity = Math.max(baseOpacity - (opacityStep * extraDepth), 0.5);
+
+  return `rgba(200, 225, 235, ${newOpacity})`;
+};
+
 interface StepBuilderProps {
   step: Step;
   onStepChange: (step: Step) => void;
@@ -219,7 +254,11 @@ export const StepBuilder: React.FC<StepBuilderProps> = ({
   };
 
   return (
-    <div className={`border-start ps-3 mb-3 ${depth > 0 ? 'ms-3' : ''}`}>
+    <div className={`border-start ps-3 mb-3 ${depth > 0 ? 'ms-3' : ''}`} style={{
+      backgroundColor: getBackgroundColor(depth),
+      padding: '15px',
+      borderRadius: '8px',
+    }}>
       <div className="mb-3">
         <div className="d-flex w-100">
           {/* Boton para expandir secciones internas */}
@@ -304,7 +343,9 @@ export const StepBuilder: React.FC<StepBuilderProps> = ({
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                               >
-                                <Card className="mb-3">
+                                <Card className="mb-3" style={{
+                                  backgroundColor: getBackgroundColor(depth + 1),
+                                }}>
                                   <Card.Header className="d-flex justify-content-between align-items-center py-2">
                                     <div className="d-flex gap-2 align-items-center">
                                       <div

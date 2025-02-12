@@ -30,9 +30,7 @@ const FlowView = () => {
   // Hooks y Estado
   // ===================================
   const { id } = useParams();
-  const [steps, setSteps] = useState<Step[]>([
-
-  ]);
+  const [steps, setSteps] = useState<Step[]>([]);
   const [originalSteps, setOriginalSteps] = useState<Step[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>({
