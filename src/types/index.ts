@@ -257,3 +257,20 @@ export interface FlowsContextType {
    */
   deleteFlow: (id: number) => Promise<void>;
 }
+
+
+export interface FlowOption {
+  valor: string | number;
+  mensaje: string;
+  proximo_paso?: FlowStep[];
+}
+
+export interface FlowStep {
+  mensaje: string;
+  tipo?: string;
+  tipo_entrada?: string;
+  opciones?: FlowOption[];
+  proximo_paso?: FlowStep[];
+  final_flujo?: boolean;
+}
+

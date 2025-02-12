@@ -13,7 +13,7 @@ import { useParams } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faSave, faDiagramProject } from '@fortawesome/free-solid-svg-icons';
-import { Step } from '../types';
+import { Step, FlowOption, FlowStep } from '../types';
 import NewStepModal from '../components/steps/NewStepModal';
 import { StepBuilder } from '../components/steps/StepBuilder';
 import JsonTreeView from '../components/JsonTree';
@@ -30,7 +30,85 @@ const FlowView = () => {
   // Hooks y Estado
   // ===================================
   const { id } = useParams();
-  const [steps, setSteps] = useState<Step[]>([]);
+  const [steps, setSteps] = useState<Step[]>([
+    {
+      "mensaje": "SE QUE ESTAS VIAJANDO",
+      "tipo": "mensaje"
+
+    },
+    {
+      "mensaje": "¿VAS A DESCANSAR?",
+      "tipo": "seleccion_botones",
+      "tipo_entrada": "texto",
+      "opciones": [
+        {
+          "valor": "1",
+          "mensaje": "SI",
+          "proximo_paso": [
+            {
+              "mensaje": "REGISTRAMOS TU RESPUESTA BUEN DESCANSO",
+              "tipo": "mensaje",
+              "tipo_entrada": "texto"
+
+            }
+          ]
+        },
+        {
+          "valor": "2",
+          "mensaje": "NO",
+          "proximo_paso": [
+            {
+              "mensaje": "¿TIENES ALGUN PROBLEMA?",
+              "tipo": "seleccion_lista",
+              "tipo_entrada": "texto",
+              "opciones": [
+                {
+                  "valor": "1",
+                  "mensaje": "SI",
+                  "proximo_paso": [
+                    {
+                      "mensaje": "SELECCIONA DE LA LISTA CUAL ES EL PRIBLEMA",
+                      "tipo": "seleccion_lista",
+                      "tipo_entrada": "texto",
+                      "opciones": [
+                        {
+                          "valor": "1",
+                          "mensaje": "PROBLEMA CON EL MOTRO",
+                          "proximo_paso": []
+                        },
+                        {
+                          "valor": "2",
+                          "mensaje": "PROBLEMA CON LOS FRENOS",
+                          "proximo_paso": []
+                        },
+                        {
+                          "valor": "3",
+                          "mensaje": "PROBLEMA ELECTRICO",
+                          "proximo_paso": []
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "valor": "2",
+                  "mensaje": "NO",
+                  "proximo_paso": [
+                    {
+                      "mensaje": "ENTONCES QUE TENGAS UN BUEN DESCANSO",
+                      "tipo": "mensaje",
+                      "tipo_entrada": "texto"
+
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]);
   const [originalSteps, setOriginalSteps] = useState<Step[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>({
@@ -39,7 +117,7 @@ const FlowView = () => {
     // tipo_entrada: 'texto'
   });
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading,setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // ===================================
   // Funciones de Manejo de Pasos
@@ -68,13 +146,82 @@ const FlowView = () => {
     setSteps(items);
   };
 
+
+  /**
+   * Procesa un flujo de navegación y añade la propiedad final_flujo: true a los nodos terminales.
+   * Un nodo terminal es aquel que:
+   * - Tiene proximo_paso vacío o no tiene proximo_paso
+   * - No tiene opciones o tiene un array de opciones vacío
+   * 
+   * @param {Object|Array} flow - El flujo de navegación a procesar
+   * @returns {Object|Array} Una nueva copia del flujo con los final_flujo añadidos
+   * 
+   * @example
+   * const flujoOriginal = [{
+   *   mensaje: "Inicio",
+   *   tipo: "seleccion_botones",
+   *   opciones: [{
+   *     valor: "1",
+   *     mensaje: "Opción 1",
+   *     proximo_paso: [] // Este será marcado como final_flujo: true
+   *   }]
+   * }];
+   */
+  type FlowNode = FlowStep | FlowOption;
+
+  const addFinalFlow =  (flow: FlowNode | FlowNode[]): FlowNode | FlowNode[]  => {
+    const processNode = (node: FlowNode): FlowNode => {
+      // Si no es un objeto o es null, retornamos el valor tal cual
+      if (!node || typeof node !== 'object') {
+        return node;
+      }
+
+      // Si es un array, procesamos cada elemento del array
+      if (Array.isArray(node)) {
+        return node.map((item: FlowNode) => processNode(item));
+      }
+
+      // Creamos una copia del nodo para no modificar el original
+      const newNode = { ...node };
+
+      // Procesamos recursivamente los proximo_paso si existen
+      if (newNode.proximo_paso) {
+        newNode.proximo_paso = newNode.proximo_paso.map((step: FlowStep) => processNode(step) as FlowStep);
+      }
+
+      // Procesamos recursivamente las opciones si existen
+      if (newNode.opciones) {
+        newNode.opciones = newNode.opciones.map((option: FlowOption) => processNode(option) as FlowOption);
+      }
+
+      // Un nodo es terminal si:
+      // 1. No tiene proximo_paso O tiene un array vacío de proximo_paso
+      // 2. No tiene opciones O tiene un array vacío de opciones
+      const isTerminal =
+        (!newNode.proximo_paso || newNode.proximo_paso.length === 0) &&
+        (!newNode.opciones || newNode.opciones.length === 0);
+
+      // Si es un nodo terminal, añadimos final_flujo: true
+      if (isTerminal) {
+        newNode.final_flujo = true;
+      }
+
+      return newNode;
+    }
+
+    // Iniciamos el procesamiento del flujo
+    return processNode(flow);
+  }
+
   /**
    * Guarda todos los pasos en el servidor
    */
   const handleSaveAllSteps = async () => {
+    // Procesar los steps para añadir final_flujo
+    const processedSteps = addFinalFlow(steps);
     setIsSaving(true);
     try {
-      await axiosInstance.post(`/api/detalle_flujos/${id}`, steps);
+      await axiosInstance.post(`/api/detalle_flujos/${id}`, processedSteps);
       Swal.fire({
         icon: "success",
         title: "Pasos Agregados",
@@ -160,7 +307,7 @@ const FlowView = () => {
       setOriginalSteps(response.data);
     } catch (error) {
       console.error('Error al obtener los detalles del flujo:', error);
-    }finally{
+    } finally {
       setIsLoading(false)
 
     }
