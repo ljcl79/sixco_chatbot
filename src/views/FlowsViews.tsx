@@ -128,7 +128,7 @@ const FlowsViews = () => {
            
            {/* Grid de tarjetas de flujos */}
            <div className="row layout">
-               {flows.map(flow => (
+               {flows.map((flow:any) => (
                    <div className="col-md-4 mb-5" key={flow.id}>
                        <div className="card p-5 shadow p-3 mb-2 bg-body-tertiary rounded"
                            style={{ minHeight: '20rem' }}>

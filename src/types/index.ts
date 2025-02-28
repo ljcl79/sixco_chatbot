@@ -80,7 +80,8 @@ export type StepType =
   | 'seleccion_botones'
   | 'entrada_numero'
   | 'entrada_texto'
-  | 'entrada_imagen';
+  | 'entrada_imagen'
+  | 'accion'
 
 /**
 * Tipos de datos para entradas
@@ -91,6 +92,19 @@ export type StepTypesData =
   'numero' |
   'imagen' |
   'telefono';
+
+
+/**
+* Representa un flujo de trabajo
+* @interface Action
+* @description Obtenemos las acciones disponibles
+*/
+export interface Action {
+  /** Identificador único de la accion */
+  id?: number;
+  /** Nombre descriptivo del flujo */
+  texto: string;
+}
 
 // ===================================
 // Props para Componentes de Modal y Pasos
@@ -225,23 +239,25 @@ export interface UpdateFlowData {
 export interface FlowsContextType {
   /** Lista de todos los flujos disponibles */
   flows: Flow[];
-  
+
+  /** Lista de acciones */
+  actions: Action[];
   /** Función para actualizar la lista de flujos */
   setFlow: React.Dispatch<React.SetStateAction<Flow[]>>;
-  
+
   /** Indica si hay una operación en curso */
   isLoading: boolean;
-  
+
   /** Almacena errores si ocurren durante las operaciones */
   error: Error | null;
-  
+
   /** 
    * Crea un nuevo flujo
    * @param newFlow Datos del nuevo flujo
    * @returns Promesa void que se resuelve cuando se completa la creación
    */
   createFlow: (newFlow: CreateFlowData) => Promise<void>;
-  
+
   /** 
    * Actualiza un flujo existente
    * @param id ID del flujo a actualizar
@@ -249,7 +265,7 @@ export interface FlowsContextType {
    * @returns Promesa void que se resuelve cuando se completa la actualización
    */
   updateFlow: (id: number, newFlow: UpdateFlowData) => Promise<void>;
-  
+
   /** 
    * Elimina un flujo
    * @param id ID del flujo a eliminar
