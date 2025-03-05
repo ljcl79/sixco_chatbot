@@ -70,69 +70,104 @@ const FlowView = () => {
 
 
   /**
-   * Procesa un flujo de navegación y añade la propiedad final_flujo: true a los nodos terminales.
-   * Un nodo terminal es aquel que:
-   * - Tiene proximo_paso vacío o no tiene proximo_paso
-   * - No tiene opciones o tiene un array de opciones vacío
+   * Procesa un flujo de navegación y asigna correctamente la propiedad final_flujo en cada nodo.
+   * Las reglas para determinar si un nodo es final son:
+   * 
+   * 1. En un array de nodos:
+   *    - Si un nodo no es el último elemento del array, tendrá final_flujo: false
+   *    - Si un nodo es el último elemento y no tiene más caminos, tendrá final_flujo: true
+   *    - Si un nodo es el último elemento pero tiene más caminos, tendrá final_flujo: false
+   * 
+   * 2. Un nodo se considera sin más caminos cuando:
+   *    - No tiene propiedad proximo_paso, o tiene un array proximo_paso vacío
+   *    - No tiene propiedad opciones, o tiene un array opciones vacío
    * 
    * @param {Object|Array} flow - El flujo de navegación a procesar
-   * @returns {Object|Array} Una nueva copia del flujo con los final_flujo añadidos
+   * @returns {Object|Array} Una nueva copia del flujo con los valores de final_flujo correctamente asignados
    * 
    * @example
-   * const flujoOriginal = [{
-   *   mensaje: "Inicio",
-   *   tipo: "seleccion_botones",
-   *   opciones: [{
-   *     valor: "1",
-   *     mensaje: "Opción 1",
-   *     proximo_paso: [] // Este será marcado como final_flujo: true
-   *   }]
-   * }];
-   */
+   * // Ejemplo 1: Array simple con 2 elementos
+   * const flujo1 = [
+   *   { mensaje: "Nodo 1", tipo: "mensaje" },
+   *   { mensaje: "Nodo 2", tipo: "mensaje" }
+   * ];
+   * // Resultado: Nodo 1: final_flujo: false, Nodo 2: final_flujo: true
+   * 
+   * @example
+   * // Ejemplo 2: Array con estructura anidada
+   * const flujo2 = [
+   *   { mensaje: "Nodo 1", tipo: "mensaje" },
+   *   { 
+   *     mensaje: "Nodo 2", 
+   *     tipo: "seleccion_lista", 
+   *     opciones: [
+   *       {
+   *         valor: "1",
+   *         mensaje: "Opción 1",
+   *         proximo_paso: [
+   *           { mensaje: "Paso 1", tipo: "mensaje" },
+   *           { mensaje: "Paso 2", tipo: "mensaje" }
+   *         ]
+   *       }
+   *     ]
+   *   }
+   * ];
+   * **/
   type FlowNode = FlowStep | FlowOption;
 
+
+  // Asigna final_flujo a nodos según su posición y estructura
   const addFinalFlow = (flow: FlowNode | FlowNode[]): FlowNode | FlowNode[] => {
-    const processNode = (node: FlowNode): FlowNode => {
-      // Si no es un objeto o es null, retornamos el valor tal cual
-      if (!node || typeof node !== 'object') {
-        return node;
-      }
+    // Devuelve tal cual si no es un objeto o es null
+    if (!flow || typeof flow !== 'object') {
+      return flow;
+    }
 
-      // Si es un array, procesamos cada elemento del array
-      if (Array.isArray(node)) {
-        return node.map((item: FlowNode) => processNode(item));
-      }
+    // Procesa cada elemento si es un array
+    if (Array.isArray(flow)) {
+      return flow.map((node, index, array) => {
+        // Procesa el nodo recursivamente primero
+        const processedNode = addFinalFlow({ ...node }) as FlowNode;
 
-      // Creamos una copia del nodo para no modificar el original
-      const newNode = { ...node };
+        // Nodos intermedios siempre tienen final_flujo = false
+        if (index < array.length - 1) {
+          processedNode.final_flujo = false;
+        }
 
-      // Procesamos recursivamente los proximo_paso si existen
-      if (newNode.proximo_paso) {
-        newNode.proximo_paso = newNode.proximo_paso.map((step: FlowStep) => processNode(step) as FlowStep);
-      }
+        return processedNode;
+      });
+    }
 
-      // Procesamos recursivamente las opciones si existen
-      if (newNode.opciones) {
-        newNode.opciones = newNode.opciones.map((option: FlowOption) => processNode(option) as FlowOption);
-      }
+    // Crea una copia del nodo
+    const newNode = { ...flow };
 
-      // Un nodo es terminal si:
-      // 1. No tiene proximo_paso O tiene un array vacío de proximo_paso
-      // 2. No tiene opciones O tiene un array vacío de opciones
-      const isTerminal =
-        (!newNode.proximo_paso || newNode.proximo_paso.length === 0) &&
-        (!newNode.opciones || newNode.opciones.length === 0);
+    // Si tiene opciones, procesa cada una recursivamente
+    if (newNode.opciones && newNode.opciones.length > 0) {
+      newNode.opciones = newNode.opciones.map((option: any) => {
+        const newOption = { ...option };
+        if (newOption.proximo_paso && newOption.proximo_paso.length > 0) {
+          newOption.proximo_paso = addFinalFlow(newOption.proximo_paso) as FlowNode[];
+        }
+        return newOption;
+      });
 
-      // Si es un nodo terminal, añadimos final_flujo: true
-      if (isTerminal) {
-        newNode.final_flujo = true;
-      }
-
+      // Nodos con opciones nunca son finales
+      newNode.final_flujo = false;
       return newNode;
     }
 
-    // Iniciamos el procesamiento del flujo
-    return processNode(flow);
+    // Si tiene proximo_paso, procesa cada uno recursivamente
+    if (newNode.proximo_paso && newNode.proximo_paso.length > 0) {
+      newNode.proximo_paso = addFinalFlow(newNode.proximo_paso) as FlowNode[];
+
+      // Nodos con proximo_paso nunca son finales
+      newNode.final_flujo = false;
+      return newNode;
+    }
+
+    // Nodos sin más caminos son finales
+    newNode.final_flujo = true;
+    return newNode;
   }
 
   /**
@@ -205,7 +240,7 @@ const FlowView = () => {
       cancelButtonColor: '#d33',
       confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar'
-    }).then((result) => {
+    }).then((result:any) => {
       if (result.isConfirmed) {
         setSteps(steps.filter((_, idx) => idx !== index));
 
