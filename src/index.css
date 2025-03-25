@@ -54,3 +54,11 @@ h1,h3{
 .click-style{
   cursor: pointer;
 }
+
+/* Media querys */
+
+@media (max-width: 768px) {
+  .layout {
+    min-width: 0vh;
+  }
+}

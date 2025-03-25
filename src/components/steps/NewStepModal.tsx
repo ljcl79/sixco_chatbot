@@ -3,8 +3,8 @@
 * Permite configurar los diferentes tipos de pasos y sus propiedades
 */
 
-import { Modal, Button, Form } from 'react-bootstrap';
-import { Step, NewStepModalProps } from '../../types/index';
+import { Modal, Button } from 'react-bootstrap';
+import {  NewStepModalProps } from '../../types/index';
 import { StepBuilder } from './StepBuilder';
 
 /**
@@ -24,8 +24,7 @@ import { StepBuilder } from './StepBuilder';
 */
 const NewStepModal = ({ 
    show, 
-   onHide, 
-   onSave, 
+   onHide,  
    currentStep, 
    setCurrentStep, 
    addStep,

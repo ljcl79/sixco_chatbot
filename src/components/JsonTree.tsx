@@ -75,7 +75,7 @@ const TreeNode = ({ data, level = 0 }: TreeNodeProps) => {
         return displayText;
     };
 
-    const renderNode = (node, key) => {
+    const renderNode = (node:any, key:string) => {
         const paddingLeft = `${level * 20}px`;
         const hasNodeChildren = hasChildren(node);
 
@@ -114,7 +114,7 @@ const TreeNode = ({ data, level = 0 }: TreeNodeProps) => {
                                 </span>
                             )}
 
-                            <div className="flex-1">
+                            <div className="flex-1 w-100">
                                 <span className="font-medium text-gray-800">
                                     {renderNodeContent(node)}
                                 </span>
@@ -133,14 +133,14 @@ const TreeNode = ({ data, level = 0 }: TreeNodeProps) => {
 
                 {hasNodeChildren && isOpen && (
                     <div className="relative">
-                        {node.proximo_paso?.map((child, index) => (
+                        {node.proximo_paso?.map((child:any, index:number) => (
                             <TreeNode
                                 key={`${key}-child-${index}`}
                                 data={child}
                                 level={level + 1}
                             />
                         ))}
-                        {node.opciones?.map((option, index) => (
+                        {node.opciones?.map((option:any, index:number) => (
                             <TreeNode
                                 key={`${key}-option-${index}`}
                                 data={option}

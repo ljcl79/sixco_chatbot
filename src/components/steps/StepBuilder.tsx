@@ -162,7 +162,7 @@ export const StepBuilder: React.FC<StepBuilderProps> = ({
     items.splice(result.destination.index, 0, reorderedItem);
 
     // Reajustar los valores después de reordenar
-    const updatedOptions = items.map((option, index) => ({
+    const updatedOptions = items.map((option:any, index:number) => ({
       ...option,
       valor: String(index + 1)
     }));
@@ -245,7 +245,7 @@ export const StepBuilder: React.FC<StepBuilderProps> = ({
 
     if (!option.proximo_paso) return;
 
-    const newNextSteps = option.proximo_paso.filter((_, idx) => idx !== stepIndex);
+    const newNextSteps = option.proximo_paso.filter((_: any, idx: number) => idx !== stepIndex);
 
     newOptions[optionIndex] = {
       ...option,
@@ -298,7 +298,7 @@ export const StepBuilder: React.FC<StepBuilderProps> = ({
                 onChange={(e: any) => onStepChange({ ...step, tipo_entrada: e.target.value as StepType })}
               >
                 {step.tipo == 'accion' ?
-                  stepTypesActions.map((type: String) => (
+                  stepTypesActions.map((type: string) => (
                     <option key={type} value={type}>
                       {type.replace('_', ' ').toUpperCase()}
                     </option>))
@@ -409,7 +409,7 @@ export const StepBuilder: React.FC<StepBuilderProps> = ({
                                               {...provided.droppableProps}
                                               ref={provided.innerRef}
                                             >
-                                              {option.proximo_paso?.map((nextStep: number, stepIndex: number) => (
+                                              {option.proximo_paso?.map((nextStep: Step, stepIndex: number) => (
                                                 <Draggable
                                                   key={`${optionIndex}-${stepIndex}`}
                                                   draggableId={`${optionIndex}-${stepIndex}`}

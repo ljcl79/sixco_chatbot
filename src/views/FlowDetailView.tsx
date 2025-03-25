@@ -131,7 +131,7 @@ const FlowView = () => {
 
         // Nodos intermedios siempre tienen final_flujo = false
         if (index < array.length - 1) {
-          processedNode.final_flujo = false;
+          (processedNode as FlowStep).final_flujo = false;
         }
 
         return processedNode;
@@ -142,8 +142,8 @@ const FlowView = () => {
     const newNode = { ...flow };
 
     // Si tiene opciones, procesa cada una recursivamente
-    if (newNode.opciones && newNode.opciones.length > 0) {
-      newNode.opciones = newNode.opciones.map((option: any) => {
+    if ((newNode as FlowStep).opciones && (newNode as FlowStep).opciones!.length > 0) {
+      (newNode as FlowStep).opciones = (newNode as FlowStep).opciones!.map((option: any) => {
         const newOption = { ...option };
         if (newOption.proximo_paso && newOption.proximo_paso.length > 0) {
           newOption.proximo_paso = addFinalFlow(newOption.proximo_paso) as FlowNode[];
@@ -152,21 +152,21 @@ const FlowView = () => {
       });
 
       // Nodos con opciones nunca son finales
-      newNode.final_flujo = false;
+      (newNode as FlowStep).final_flujo = false;
       return newNode;
     }
 
     // Si tiene proximo_paso, procesa cada uno recursivamente
-    if (newNode.proximo_paso && newNode.proximo_paso.length > 0) {
-      newNode.proximo_paso = addFinalFlow(newNode.proximo_paso) as FlowNode[];
+    if ((newNode as FlowStep).proximo_paso && (newNode as FlowStep).proximo_paso!.length > 0) {
+      newNode.proximo_paso = addFinalFlow((newNode as FlowStep).proximo_paso!) as FlowNode[];
 
       // Nodos con proximo_paso nunca son finales
-      newNode.final_flujo = false;
+      (newNode as FlowStep).final_flujo = false;
       return newNode;
     }
 
     // Nodos sin más caminos son finales
-    newNode.final_flujo = true;
+    (newNode as FlowStep).final_flujo = true;
     return newNode;
   }
 
@@ -179,6 +179,7 @@ const FlowView = () => {
     setIsSaving(true);
     try {
       await axiosInstance.post(`/api/detalle_flujos/${id}`, processedSteps);
+      setOriginalSteps(steps);
       Swal.fire({
         icon: "success",
         title: "Pasos Agregados",
