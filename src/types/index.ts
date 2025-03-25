@@ -119,10 +119,18 @@ export interface NewStepModalProps {
   show: boolean;
   /** Callback para cerrar el modal */
   onHide: () => void;
-  /** Callback para guardar el paso */
-  onSave: (newStep: Step, id?: string) => void;
+  /** Callback para guardar el paso (opcional) */
+  onSave?: (newStep: Step, id?: string) => void;
   /** ID opcional para edición */
   id?: string;
+  /** Paso actual siendo editado */
+  currentStep: Step;
+  /** Función para actualizar el paso actual */
+  setCurrentStep: (step: Step) => void;
+  /** Función para agregar el paso al flujo */
+  addStep: () => void;
+  /** Indica si es una nueva opción */
+  newOpcion: boolean;
 }
 
 /**

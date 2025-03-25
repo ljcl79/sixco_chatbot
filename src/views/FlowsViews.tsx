@@ -21,6 +21,7 @@ import {
 import { Card } from 'react-bootstrap';
 import Swal from "sweetalert2";
 import LoadingComponent from '../components/layout/LoadingComponent';
+import { Flow } from '../types/index';
 
 
 /**
@@ -67,8 +68,7 @@ const FlowsViews = () => {
    // ===================================
    const { flows, isLoading, error, deleteFlow } = useFlows();
    const navigate = useNavigate();
-   const [selectedFlow, setSelectedFlow] = useState(null);
-
+   const [selectedFlow, setSelectedFlow] = useState<Flow | null>(null);
    // ===================================
    // Manejadores de Eventos
    // ===================================
